@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Login Example</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script language="javascript">
+        function SubmitLoginData() {
+            var reqdata = {
+                Username: $('#myUsername').val(),
+                Password: $('#myPassword').val()
+            };
+            var stringReqdata = JSON.stringify(reqdata);
+            var url = "http://localhost:49970/api/Login";
+            $.ajax({
+                url: url,
+                type: "post",
+                data: stringReqdata,
+                dataType: "json",
+                context: document.body,
+                contentType: 'application/json; charset=utf-8',
+                success: function (message) {
+                    if (message == "Đăng nhập thất bại") {
+                        alert(message);
+                        return;
+                    } else {
+                        return location.href = "http://localhost:50166/ShowProduct.html"
+                    }
+                }
+            });
+        }
+    </script>
+</head>`
+<body>
+    <div class="container col-md-4 col-md-offset-4">
+        <h3>DEMO LOGIN</h3>
+        
+            <div class="form-group">
+                <label for="myUsername">USERNAME</label>
+                <input type="text" id="myUsername" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="myPassword">PASSWORD</label>
+                <input type="password" id="myPassword" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary form-control" type="submit" onclick="SubmitLoginData()">SUBMIT</button>
+            </div>
+  
+        
+    </div>
+</body>
+</html>

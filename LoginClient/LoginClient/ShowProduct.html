@@ -1,0 +1,202 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Show Product</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css" />
+    <link href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.js"></script>
+    <script src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+
+    <!-- jQuery Modal Library -->
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />-->
+
+</head>
+<body>
+    <div class="container col-md-4 col-md-offset-4">
+        <h3>SHOW PRODUCT</h3>
+        <a class="btn btn-success" href="javascript:void(0)" id="createNewProduct"> Create New Product</a>
+        <table class="table table-bordered thead-dark table-striped" id="tbl">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>PRODUCT NAME</th>
+                    <th>PRICE</th>
+                   <th>QUANTITY</th>
+                    <th>ACTION</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+    <div class="modal" id="ajaxModel" aria-hidden="true" style="height:750px" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="modelHeading"></h4>
+                </div>
+                <div class="modal-body">
+                    <form id="productForm" name="productForm" class="form-horizontal">
+                        <input type="hidden" name="Id" id="Id">
+                        <div class="form-group">
+                            <label for="name" class="col-sm-4 control-label">Product Name:</label>
+                            <div class="col-sm-12">
+                                <input type="text" class="form-control" id="ProductName" name="ProductName" placeholder="Enter Product Name" value="" required="">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Price</label>
+                            <div class="col-sm-12">
+                                <input type="number" id="Price" name="Price" required="" placeholder="Enter Price" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Qty</label>
+                            <div class="col-sm-12">
+                                <input type="number" id="Qty" name="Qty" required="" placeholder="Enter Quantity" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button type="submit" class="btn btn-primary" id="saveBtn" value="create">
+                                Save changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script language="javascript">
+        function LoadDataIntoTable() {
+            $.ajax({
+                url: "http://localhost:49970/api/Product/HandleGetProductData",
+                type: "get",
+                dataType: "json",
+                success: function (data) {
+                    console.log(data[0]);
+                    $('#tbl').append('<tbody>');
+                    for (var i in data) {
+                        $('#tbl').append(
+                            '<tr>'
+                            + '<td>' + data[i].Id + '</td>'
+                            + '<td>' + data[i].ProductName + '</td>'
+                            + '<td>' + data[i].Price + '</td>'
+                            + '<td>' + data[i].Qty + '</td>'
+                            + '<td>'
+                            + '<a href="javascript:void(0)" data-toggle="tooltip" data-id="' + data[i].Id + '" data-original-title="Edit" class="edit btn btn-primary btn-sm editProduct">Edit</a>'
+                            + ' <a href="javascript:void(0)" data-toggle="tooltip"  data-id="' + data[i].Id + '" data-original-title="Delete" class="btn btn-danger btn-sm deleteProduct">Delete</a>'
+                            + '</td > '
+                            + '</tr>'
+                        );
+                    }
+                    $('#tbl').append('</tbody>');
+                }
+            });
+        }
+        $(document).ready(function () {
+            LoadDataIntoTable();
+        });
+
+        $('#createNewProduct').click(function () {
+            $('#saveBtn').val("create-product");
+            $('#Id').val('');
+            $('#productForm').trigger("reset");
+            $('#modelHeading').html("Create New Product");
+            $('#ajaxModel').modal('show');
+        });
+
+        $('body').on('click', '.editProduct', function () {
+            var product_id = $(this).data('id');
+
+            $.get("http://localhost:49970/api/Product/HandleGetProductData" + '/' + product_id, function (data) {
+                $('#modelHeading').html("Edit Product");
+                $('#saveBtn').val("edit-product");
+                $('#ajaxModel').modal('show');
+                $('#Id').val(data[0].Id);
+                $('#ProductName').val(data[0].ProductName);
+                $('#Price').val(data[0].Price);
+                $('#Qty').val(data[0].Qty);
+            })
+        });
+
+
+        $('#saveBtn').click(function (e) {
+            e.preventDefault();
+
+            var reqdata = {
+                ProductName: $('#ProductName').val(),
+                Price: $('#Price').val(),
+                Qty: $('#Qty').val()
+            };
+            var stringReqdata = JSON.stringify(reqdata);
+            if ($('#Id').val() == "") {
+                $.ajax({
+                    data: stringReqdata,
+                    url: "http://localhost:49970/api/Product/HandleCreateProductData",
+                    type: "post",
+                    dataType: 'json',
+                    context: document.body,
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        $('#productForm').trigger("reset");
+                        alert(data);
+                        $('#ajaxModel').modal('hide');
+                        $('#tbl > tbody').remove();
+                        LoadDataIntoTable();
+                    },
+                    error: function (data) {
+                        console.log('Error:', data);
+                    }
+                });
+            } else {
+                $.ajax({
+                    data: stringReqdata,
+                    url: "http://localhost:49970/api/Product/HandleUpdateProductData" + "/" + $('#Id').val(),
+                    type: "put",
+                    dataType: 'json',
+                    context: document.body,
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        $('#productForm').trigger("reset");
+                        alert(data);
+                        $('#ajaxModel').modal('hide');
+                        $('#tbl > tbody').remove();
+                        LoadDataIntoTable();
+                        //location.reload();
+                    },
+                    error: function (data) {
+                        console.log('Error:', data);
+                    }
+                });
+            }
+        });
+
+
+        $('body').on('click', '.deleteProduct', function () {
+            var product_id = $(this).data('id');
+            $.ajax({
+                url: "http://localhost:49970/api/Product/DeleteProduct" + '/' + product_id,
+                type: "delete",
+                success: function (message) {
+                    //location.reload();
+                    $('#tbl > tbody').remove();
+                    LoadDataIntoTable();
+                    alert(message);
+
+                },
+                error: function (data) {
+                    console.log('Error:', data);
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
